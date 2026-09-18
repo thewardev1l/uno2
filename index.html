@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>UNO Online</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#171717;
+    color:white;
+    overflow:hidden;
+}
+
+/* =========================
+   MENU
+========================= */
+
+#menu{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+}
+
+#menu h1{
+    font-size:90px;
+    margin:0;
+    color:#e60000;
+    text-shadow:
+        4px 4px 0 #ffd500,
+        -2px -2px 0 white;
+}
+
+#menu p{
+    font-size:22px;
+}
+
+#playerCountSelection{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    align-items:center;
+}
+
+.playerButton{
+    width:260px;
+    padding:18px;
+    border:none;
+    border-radius:12px;
+    font-size:22px;
+    font-weight:bold;
+    cursor:pointer;
+    background:white;
+    color:#111;
+    transition:.2s;
+}
+
+.playerButton:hover{
+    transform:scale(1.05);
+}
+
+/* =========================
+   JOGO
+========================= */
+
+#game{
+    display:none;
+    width:100vw;
+    height:100vh;
+    position:relative;
+}
+
+/* Mesa */
+
+#table{
+    position:absolute;
+
+    width:min(90vw,1200px);
+    height:min(75vh,700px);
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+
+    background:
+        radial-gradient(circle at center,#178b4b,#08743b);
+
+    border:15px solid #51351d;
+
+    border-radius:50%;
+
+    box-shadow:
+        inset 0 0 50px rgba(0,0,0,.5),
+        0 15px 30px rgba(0,0,0,.6);
+}
+
+/* =========================
+   CENTRO
+========================= */
+
+#center{
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+/* Pilhas */
+
+.pile{
+    width:90px;
+    height:130px;
+
+    border-radius:10px;
+
+    position:relative;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-weight:bold;
+
+    user-select:none;
+}
+
+#drawPile{
+    background:#151515;
+    border:4px solid white;
+
+    cursor:pointer;
+
+    box-shadow:
+        5px 5px 0 rgba(0,0,0,.5);
+}
+
+#drawPile::after{
+    content:"UNO";
+
+    position:absolute;
+
+    font-size:25px;
+
+    color:white;
+
+    transform:rotate(-45deg);
+
+    border:3px solid white;
+    border-radius:12px;
+
+    padding:5px 10px;
+}
+
+#discardPile{
+    width:100px;
+    height:140px;
+}
+
+/* =========================
+   CARTAS
+========================= */
+
+.card{
+    width:90px;
+    height:130px;
+
+    border-radius:11px;
+
+    border:4px solid white;
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:space-between;
+    align-items:center;
+
+    padding:7px;
+
+    font-weight:bold;
+
+    box-shadow:
+        3px 4px 5px rgba(0,0,0,.4);
+
+    user-select:none;
+
+    position:relative;
+}
+
+.cardCenter{
+    position:absolute;
+
+    top:50%;
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    font-size:31px;
+
+    text-align:center;
+
+    width:100%;
+}
+
+.cardCorner{
+    font-size:18px;
+    align-self:flex-start;
+}
+
+.cardCorner.bottom{
+    align-self:flex-end;
+    transform:rotate(180deg);
+}
+
+/* Cores */
+
+.red{
+    background:#e52521;
+}
+
+.yellow{
+    background:#f5d800;
+    color:#111;
+}
+
+.green{
+    background:#159447;
+}
+
+.blue{
+    background:#1976d2;
+}
+
+.wild{
+    background:#151515;
+}
+
+/*
+   Quando +4 recebe uma cor,
+   a carta passa a mostrar a cor
+*/
+.wild.red{
+    background:#e52521;
+}
+
+.wild.yellow{
+    background:#f5d800;
+    color:#111;
+}
+
+.wild.green{
+    background:#159447;
+}
+
+.wild.blue{
+    background:#1976d2;
+}
+
+/* =========================
+   JOGADORES
+========================= */
+
+.player{
+    position:absolute;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+
+    min-width:180px;
+}
+
+.playerName{
+    background:rgba(0,0,0,.7);
+
+    padding:7px 14px;
+
+    border-radius:10px;
+
+    font-size:18px;
+    font-weight:bold;
+}
+
+.cardCount{
+    margin-top:5px;
+
+    background:#111;
+
+    padding:5px 10px;
+
+    border-radius:20px;
+
+    font-size:15px;
+}
+
+/* Jogador de cima */
+
+#player0{
+    left:50%;
+    top:15px;
+
+    transform:translateX(-50%);
+}
+
+/* Jogador da esquerda */
+
+#player1{
+    left:25px;
+    top:50%;
+
+    transform:translateY(-50%);
+}
+
+/* Jogador da direita */
+
+#player2{
+    right:25px;
+    top:50%;
+
+    transform:translateY(-50%);
+}
+
+/* Jogador inferior */
+
+#player3{
+    left:50%;
+    bottom:15px;
+
+    transform:translateX(-50%);
+}
+
+/* =========================
+   CARTAS DOS OPONENTES
+========================= */
+
+.opponentCards{
+    display:flex;
+
+    justify-content:center;
+
+    margin-top:8px;
+}
+
+.backCard{
+    width:45px;
+    height:65px;
+
+    margin-left:-18px;
+
+    border:3px solid white;
+
+    border-radius:7px;
+
+    background:#171717;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+
+    font-size:13px;
+    font-weight:bold;
+
+    transform:rotate(-5deg);
+
+    box-shadow:2px 3px 4px rgba(0,0,0,.4);
+}
+
+.backCard:first-child{
+    margin-left:0;
+}
+
+/* =========================
+   MÃO DO JOGADOR
+========================= */
+
+#myHand{
+    position:absolute;
+
+    left:50%;
+    bottom:5px;
+
+    transform:translateX(-50%);
+
+    display:flex;
+
+    align-items:flex-end;
+    justify-content:center;
+
+    height:190px;
+
+    max-width:90vw;
+
+    z-index:20;
+}
+
+.handCard{
+    width:80px;
+    height:115px;
+
+    margin-left:-25px;
+
+    transition:.2s;
+
+    cursor:pointer;
+}
+
+.handCard:first-child{
+    margin-left:0;
+}
+
+.handCard:hover{
+    transform:translateY(-35px) scale(1.08);
+
+    z-index:50;
+}
+
+/* =========================
+   INFORMAÇÕES
+========================= */
+
+#info{
+    position:absolute;
+
+    top:20px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    display:flex;
+
+    gap:12px;
+
+    align-items:center;
+
+    background:rgba(0,0,0,.75);
+
+    padding:10px 18px;
+
+    border-radius:12px;
+
+    z-index:100;
+
+    font-weight:bold;
+}
+
+#direction{
+    font-size:20px;
+}
+
+#currentColor{
+    padding:5px 12px;
+
+    border-radius:8px;
+}
+
+#pending{
+    background:#c00;
+
+    padding:5px 12px;
+
+    border-radius:8px;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+#controls{
+    position:absolute;
+
+    right:20px;
+    bottom:20px;
+
+    z-index:100;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+}
+
+.controlButton{
+    padding:12px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    font-size:17px;
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+#unoButton{
+    background:#e60000;
+    color:white;
+}
+
+#challengeButton{
+    background:#ff9800;
+    color:#111;
+}
+
+#changeButton{
+    background:white;
+    color:#111;
+}
+
+/* =========================
+   INDICADOR EXPLÍCITO DE TURNO
+========================= */
+
+#turnBanner{
+    position:fixed;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%) translateY(-20px);
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:9px 18px;
+    border:2px solid rgba(255,255,255,.8);
+    border-radius:999px;
+    background:rgba(0,0,0,.88);
+    box-shadow:0 8px 25px rgba(0,0,0,.45);
+    font-size:15px;
+    font-weight:900;
+    opacity:0;
+    pointer-events:none;
+    white-space:nowrap;
+}
+
+#turnBanner.show{
+    animation:turnBannerIn .38s ease-out forwards;
+}
+
+#turnBanner.myTurn{
+    border-color:#ffd500;
+    box-shadow:0 0 18px rgba(255,213,0,.55),0 8px 25px rgba(0,0,0,.45);
+}
+
+@keyframes turnBannerIn{
+    0%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.88)}
+    100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+
+/* =========================
+   ANIMAÇÕES DAS CARTAS
+========================= */
+
+#animationLayer{
+    position:fixed;
+    inset:0;
+    z-index:900;
+    pointer-events:none;
+    overflow:hidden;
+}
+
+.flyingCard{
+    position:fixed !important;
+    margin:0 !important;
+    width:72px !important;
+    height:104px !important;
+    z-index:950 !important;
+    pointer-events:none !important;
+    transform-origin:center center;
+}
+
+.drawAnimationCard{
+    position:fixed;
+    width:58px;
+    height:84px;
+    border:3px solid white;
+    border-radius:9px;
+    background:#171717;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    font-weight:900;
+    box-shadow:3px 5px 10px rgba(0,0,0,.5);
+    z-index:940;
+    pointer-events:none;
+}
+
+.drawAnimationCard::after{
+    content:"UNO";
+    border:2px solid white;
+    border-radius:6px;
+    padding:3px 5px;
+    transform:rotate(-12deg);
+}
+
+/* =========================
+   ANIMAÇÃO GLOBAL DE UNO
+========================= */
+
+#unoCelebration{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+    background:rgba(0,0,0,.28);
+}
+
+#unoCelebration.active{
+    display:flex;
+    animation:unoOverlay .18s ease-out;
+}
+
+.unoBurst{
+    text-align:center;
+    padding:24px 34px;
+    border:5px solid white;
+    border-radius:28px;
+    background:#e60000;
+    box-shadow:0 0 0 7px #ffd500,0 20px 60px rgba(0,0,0,.65);
+    transform:rotate(-4deg) scale(.45);
+    animation:unoBurst .72s cubic-bezier(.16,1.4,.35,1) forwards;
+}
+
+.unoWord{
+    font-size:clamp(70px,13vw,150px);
+    line-height:.85;
+    font-weight:1000;
+    color:white;
+    text-shadow:5px 5px 0 #111;
+    letter-spacing:4px;
+}
+
+#unoPlayerName{
+    margin-top:12px;
+    font-size:clamp(18px,3vw,32px);
+    font-weight:900;
+    color:#ffd500;
+    text-shadow:2px 2px 0 #111;
+}
+
+@keyframes unoOverlay{
+    from{opacity:0}
+    to{opacity:1}
+}
+
+@keyframes unoBurst{
+    0%{transform:rotate(-10deg) scale(.45);opacity:0}
+    45%{transform:rotate(4deg) scale(1.12);opacity:1}
+    70%{transform:rotate(-2deg) scale(.96)}
+    100%{transform:rotate(-4deg) scale(1)}
+}
+
+/* Pulso na pilha quando uma carta chega */
+#discardPile.cardImpact{
+    animation:cardImpact .42s ease-out;
+}
+
+@keyframes cardImpact{
+    0%{transform:scale(.82) rotate(-6deg)}
+    55%{transform:scale(1.12) rotate(4deg)}
+    100%{transform:scale(1) rotate(0)}
+}
+
+@media(max-width:700px){
+    #turnBanner{
+        top:6px;
+        max-width:92vw;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        font-size:13px;
+        padding:8px 14px;
+    }
+
+    #info{
+        top:54px;
+        max-width:92vw;
+        font-size:12px;
+        gap:7px;
+        padding:8px 10px;
+    }
+}
+
+/* =========================
+   MODAL DAS CORES
+========================= */
+
+#colorModal{
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.75);
+
+    z-index:1000;
+
+    justify-content:center;
+    align-items:center;
+}
+
+#colorBox{
+    background:#222;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    text-align:center;
+
+    box-shadow:0 10px 40px black;
+}
+
+#colorBox h2{
+    margin-top:0;
+}
+
+.colorButton{
+    width:100px;
+    height:70px;
+
+    margin:10px;
+
+    border:none;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+.colorButton.red{
+    background:#e52521;
+}
+
+.colorButton.yellow{
+    background:#f5d800;
+}
+
+.colorButton.green{
+    background:#159447;
+}
+
+.colorButton.blue{
+    background:#1976d2;
+}
+
+/* =========================
+   VITÓRIA
+========================= */
+
+#winScreen{
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.9);
+
+    z-index:2000;
+
+    justify-content:center;
+    align-items:center;
+
+    flex-direction:column;
+}
+
+#winScreen h1{
+    font-size:70px;
+    color:#ffd500;
+}
+
+#restartButton{
+    padding:18px 35px;
+
+    border:none;
+
+    border-radius:12px;
+
+    font-size:22px;
+
+    cursor:pointer;
+}
+
+
+/* =========================
+   ONLINE / LOBBY
+========================= */
+
+#onlineLobby{
+    width:min(94vw,520px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+}
+
+.lobbyCard{
+    width:100%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:24px;
+    padding:26px;
+    box-shadow:0 18px 45px rgba(0,0,0,.35);
+    backdrop-filter:blur(8px);
+}
+
+.lobbyTitle{
+    margin:0 0 5px;
+    font-size:28px;
+    text-align:center;
+}
+
+.lobbySubtitle{
+    margin:0 0 20px !important;
+    font-size:15px !important;
+    opacity:.72;
+    text-align:center;
+}
+
+.selectedPlayersBadge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    align-self:center;
+    background:#e60000;
+    color:white;
+    border:2px solid #ffd500;
+    border-radius:999px;
+    padding:7px 16px;
+    font-size:15px;
+    font-weight:bold;
+    margin-bottom:14px;
+}
+
+.fieldLabel{
+    display:block;
+    margin:10px 0 7px;
+    font-size:13px;
+    font-weight:bold;
+    opacity:.8;
+    text-align:left;
+}
+
+.onlineBox input{
+    width:100%;
+    padding:15px 16px;
+    border:2px solid transparent;
+    border-radius:12px;
+    font-size:18px;
+    text-align:left;
+    outline:none;
+    background:#fff;
+    color:#111;
+    transition:.2s;
+}
+
+.onlineBox input:focus{
+    border-color:#ffd500;
+    box-shadow:0 0 0 3px rgba(255,213,0,.15);
+}
+
+.createButton,
+.joinButton,
+.startButton{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:15px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.createButton{
+    margin-top:12px;
+    background:#e60000;
+    color:white;
+    box-shadow:0 6px 16px rgba(230,0,0,.25);
+}
+
+.createButton:hover,
+.joinButton:hover,
+.startButton:not(:disabled):hover{
+    transform:translateY(-2px);
+    filter:brightness(1.08);
+}
+
+.divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:22px 0 16px;
+    opacity:.55;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.divider::before,
+.divider::after{
+    content:"";
+    height:1px;
+    flex:1;
+    background:rgba(255,255,255,.35);
+}
+
+.joinRow{
+    display:flex;
+    gap:10px;
+}
+
+.joinRow input{
+    flex:1;
+    text-transform:uppercase;
+}
+
+.joinButton{
+    width:125px;
+    flex-shrink:0;
+    background:white;
+    color:#111;
+}
+
+.backMenuButton{
+    width:100%;
+    background:transparent;
+    color:white;
+    border:1px solid rgba(255,255,255,.25);
+}
+
+.backMenuButton:hover{
+    background:rgba(255,255,255,.08);
+}
+
+#lobbyStatus{
+    min-height:22px;
+    width:100%;
+    font-size:14px;
+    font-weight:bold;
+    text-align:center;
+}
+
+#roomPanel{
+    width:100%;
+    margin-top:4px;
+    background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.055));
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:22px;
+    padding:22px;
+    box-shadow:0 16px 35px rgba(0,0,0,.35);
+}
+
+.roomHeader{
+    text-align:center;
+}
+
+.roomHeader h2{
+    margin:0;
+    font-size:24px;
+}
+
+.roomCodeBox{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:15px 0 10px;
+}
+
+#roomCodeLabel{
+    letter-spacing:7px;
+    font-size:34px;
+    font-weight:900;
+    color:#ffd500;
+}
+
+.copyButton{
+    border:none;
+    border-radius:9px;
+    padding:8px 10px;
+    background:rgba(255,255,255,.12);
+    color:white;
+    cursor:pointer;
+}
+
+.copyButton:hover{
+    background:rgba(255,255,255,.2);
+}
+
+#hostText,
+#roomCapacityText{
+    margin:6px 0;
+    font-size:14px;
+    opacity:.85;
+}
+
+#roomCapacityText{
+    color:#ffd500;
+    font-weight:bold;
+}
+
+#lobbyPlayers{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin:18px 0;
+}
+
+.lobbyPlayer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(0,0,0,.24);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:11px;
+    padding:11px 13px;
+    text-align:left;
+    font-weight:bold;
+}
+
+.lobbyPlayer.empty{
+    opacity:.45;
+    font-weight:normal;
+}
+
+.startButton{
+    background:#20a84a;
+    color:white;
+    margin-top:4px;
+}
+
+.startButton:disabled{
+    cursor:not-allowed;
+    opacity:.45;
+    background:#555;
+}
+
+.waitingText{
+    margin:9px 0 0;
+    text-align:center;
+    font-size:13px;
+    opacity:.7;
+}
+
+.exitButton{
+    background:#b90000;
+    color:white;
+}
+
+@media(max-width:600px){
+    #menu h1{font-size:70px}
+    #onlineLobby{width:min(94vw,430px)}
+    .lobbyCard{padding:20px}
+    #roomCodeLabel{font-size:28px;letter-spacing:5px}
+}
+
+#penaltyEffect{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:300;
+    display:none;
+    pointer-events:none;
+    text-align:center;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-shadow:0 4px 8px rgba(0,0,0,.8);
+}
+
+#penaltyEffect.active{
+    display:flex;
+    animation:penaltyPulse .55s ease;
+}
+
+#penaltyAmount{
+    font-size:58px;
+    line-height:1;
+    color:white;
+    background:#c40000;
+    border:4px solid white;
+    border-radius:18px;
+    padding:7px 18px;
+}
+
+#penaltyTarget{
+    margin-top:6px;
+    font-size:15px;
+    font-weight:bold;
+    background:rgba(0,0,0,.8);
+    padding:5px 10px;
+    border-radius:10px;
+}
+
+@keyframes penaltyPulse{
+    0%{transform:translate(-50%,-50%) scale(.65);opacity:0}
+    60%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
+    100%{transform:translate(-50%,-50%) scale(1);opacity:1}
+}
+
+.myTurn{
+    box-shadow:0 0 0 4px #ffd500, 0 0 25px #ffd500;
+}
+
+/* =========================
+   LOBBY V3 - COMPACTO E RESPONSIVO
+========================= */
+#menu{
+    justify-content:flex-start;
+    height:100vh;
+    min-height:100vh;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:22px 16px 36px;
+    gap:12px;
+}
+
+#menu h1{
+    font-size:76px;
+    line-height:.95;
+    margin:0 0 2px;
+}
+
+#menu > p{
+    margin:4px 0 8px;
+    font-size:19px;
+    text-align:center;
+}
+
+#onlineLobby{
+    width:min(94vw,780px);
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+}
+
+#setupCard{
+    grid-column:1;
+    width:100%;
+    padding:18px;
+    border-radius:18px;
+}
+
+#roomPanel{
+    grid-column:2;
+    width:100%;
+    margin-top:0;
+    padding:18px;
+    border-radius:18px;
+}
+
+#lobbyStatus{
+    grid-column:1 / -1;
+    grid-row:2;
+    min-height:18px;
+}
+
+#onlineLobby > .backMenuButton{
+    grid-column:1 / -1;
+    grid-row:3;
+}
+
+.selectedPlayersBadge{
+    padding:5px 13px;
+    font-size:13px;
+    margin-bottom:9px;
+}
+
+.lobbyTitle{
+    font-size:23px;
+}
+
+.lobbySubtitle{
+    margin-bottom:13px !important;
+    font-size:13px !important;
+}
+
+.fieldLabel{
+    margin:8px 0 5px;
+    font-size:11px;
+}
+
+.onlineBox input{
+    padding:11px 12px;
+    border-radius:10px;
+    font-size:15px;
+}
+
+.createButton,
+.joinButton,
+.startButton{
+    padding:12px;
+    font-size:15px;
+    border-radius:10px;
+}
+
+.createButton{
+    margin-top:9px;
+}
+
+.divider{
+    margin:14px 0 10px;
+    gap:8px;
+    font-size:10px;
+}
+
+.joinRow{
+    gap:8px;
+}
+
+.joinButton{
+    width:100px;
+}
+
+.roomHeader h2{
+    font-size:21px;
+}
+
+.roomCodeBox{
+    margin:10px 0 7px;
+}
+
+#roomCodeLabel{
+    font-size:29px;
+    letter-spacing:5px;
+}
+
+#hostText,
+#roomCapacityText{
+    margin:4px 0;
+    font-size:13px;
+}
+
+#lobbyPlayers{
+    gap:6px;
+    margin:12px 0;
+}
+
+.lobbyPlayer{
+    padding:9px 11px;
+    border-radius:9px;
+    font-size:14px;
+}
+
+.waitingText{
+    margin:7px 0 0;
+    font-size:12px;
+}
+
+.exitButton{
+    width:100%;
+    margin-top:9px;
+    padding:11px;
+    font-size:15px;
+}
+
+@media(max-width:700px){
+    #menu{
+        padding-top:16px;
+    }
+
+    #menu h1{
+        font-size:64px;
+    }
+
+    #onlineLobby{
+        width:min(94vw,500px);
+        grid-template-columns:1fr;
+    }
+
+    #setupCard,
+    #roomPanel,
+    #lobbyStatus,
+    #onlineLobby > .backMenuButton{
+        grid-column:1;
+        grid-row:auto;
+    }
+
+    #setupCard,
+    #roomPanel{
+        padding:16px;
+    }
+}
+
+
+/* =========================
+   V5 - MESA MAIS ESPAÇADA
+========================= */
+#center{
+    gap:58px;
+}
+#drawPile{
+    width:112px;
+    height:158px;
+    border-radius:14px;
+}
+#discardPile{
+    width:112px;
+    height:158px;
+}
+#drawPile::after{font-size:29px;padding:6px 12px}
+#discardPile .card{width:104px;height:150px}
+#myHand{
+    width:min(78vw,920px);
+    height:175px;
+    bottom:4px;
+}
+.handCard{
+    width:74px;
+    height:108px;
+    margin-left:-19px;
+}
+.handCard:hover{transform:translateY(-32px) scale(1.07)}
+.player{min-width:200px}
+.playerAvatar{
+    width:58px;height:58px;border-radius:50%;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:#222;border:3px solid white;font-size:30px;
+    box-shadow:0 5px 15px rgba(0,0,0,.45);margin-bottom:5px;
+}
+.playerAvatar img{width:100%;height:100%;object-fit:cover}
+.player.myTurn .playerAvatar{border-color:#ffd500;box-shadow:0 0 0 3px rgba(255,213,0,.25),0 0 22px #ffd500}
+
+/* =========================
+   TIMER DE INATIVIDADE
+========================= */
+#turnTimer{
+    position:fixed;left:50%;bottom:148px;transform:translateX(-50%);
+    z-index:1200;display:none;align-items:center;gap:12px;
+    padding:10px 18px;border-radius:16px;background:rgba(0,0,0,.92);
+    border:2px solid #ffd500;box-shadow:0 8px 30px rgba(0,0,0,.5);
+    pointer-events:none;
+}
+#turnTimerNumber{
+    min-width:48px;text-align:center;font-size:34px;font-weight:1000;color:#ffd500;
+}
+#turnTimerName{font-weight:900;font-size:13px}
+#turnTimer.urgent{border-color:#ff3030;animation:timerPulse .55s infinite alternate}
+#turnTimer.urgent #turnTimerNumber{color:#ff4040}
+@keyframes timerPulse{to{transform:translateX(-50%) scale(1.06)}}
+
+/* =========================
+   COMPRA JOGÁVEL
+========================= */
+#drawChoiceModal,#colorModal,#winScreen{
+    backdrop-filter:blur(3px);
+}
+#drawChoiceModal{
+    position:fixed;inset:0;z-index:2100;display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.58);
+}
+.drawChoiceBox{
+    width:min(92vw,430px);padding:25px;border-radius:22px;text-align:center;
+    background:#202020;border:2px solid rgba(255,255,255,.18);box-shadow:0 20px 60px rgba(0,0,0,.6)
+}
+.drawChoiceBox h2{margin:0 0 8px;font-size:25px}
+.drawChoiceBox p{opacity:.8;margin:0 0 18px}
+.drawChoiceButtons{display:grid;gap:10px}
+.drawChoiceButtons button{border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:900;cursor:pointer}
+#playDrawnButton{background:#20b457;color:white}
+#keepDrawnButton{background:#fff;color:#111}
+
+/* =========================
+   CHAT + EMOTES
+========================= */
+#socialPanel{
+    display:none;
+    position:fixed;left:16px;bottom:16px;width:300px;z-index:1100;
+    background:rgba(12,12,12,.93);border:1px solid rgba(255,255,255,.15);
+    border-radius:16px;padding:10px;box-shadow:0 12px 35px rgba(0,0,0,.45)
+}
+#chatMessages{height:115px;overflow-y:auto;padding:3px 5px;font-size:12px;display:flex;flex-direction:column;gap:5px}
+.chatRow{line-height:1.25;overflow-wrap:anywhere}.chatRow b{color:#ffd500}
+#chatForm{display:flex;gap:6px;margin-top:7px}
+#chatInput{min-width:0;flex:1;border:0;border-radius:9px;padding:9px;background:#fff;color:#111;outline:none}
+#chatSend{border:0;border-radius:9px;padding:0 12px;background:#20b457;color:#fff;font-weight:900;cursor:pointer}
+#emotes{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.emoteButton{border:0;background:#303030;border-radius:9px;padding:5px 7px;font-size:18px;cursor:pointer;transition:.12s}
+.emoteButton:hover{transform:scale(1.15);background:#444}
+.floatingEmote{position:fixed;z-index:1800;font-size:64px;pointer-events:none;text-shadow:0 5px 12px rgba(0,0,0,.65)}
+
+/* =========================
+   FOTO DE PERFIL NO LOBBY
+========================= */
+.profileRow{display:flex;align-items:center;gap:12px;margin-top:8px}
+#avatarPreview{width:58px;height:58px;min-width:58px;border-radius:50%;background:#151515;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:27px;overflow:hidden}
+#avatarPreview img{width:100%;height:100%;object-fit:cover}
+.avatarChooser{flex:1}
+.avatarChooser label{display:block;font-size:11px;font-weight:900;margin-bottom:5px}
+.avatarChooser input{width:100%;padding:7px!important;font-size:12px!important}
+
+/* =========================
+   NOVA TELA DE VITÓRIA
+========================= */
+#winScreen{
+    position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;
+    flex-direction:column;background:rgba(0,0,0,.72);text-align:center;padding:20px
+}
+#winScreen h1{font-size:clamp(44px,8vw,86px);margin:0 0 12px;color:#ffd500;text-shadow:4px 4px 0 #d00000}
+#rematchCount{margin:0 0 18px;font-size:18px;font-weight:900}
+#rematchButton,#leaveAfterWin{border:0;border-radius:13px;padding:14px 25px;font-size:17px;font-weight:900;cursor:pointer;margin:5px}
+#rematchButton{background:#20b457;color:#fff}#rematchButton:disabled{opacity:.6;cursor:default}
+#leaveAfterWin{background:#e00000;color:white}
+
+@media(max-width:900px){
+    #center{gap:32px}
+    #drawPile,#discardPile{width:90px;height:128px}
+    #discardPile .card{width:84px;height:122px}
+    #socialPanel{width:270px;left:8px;bottom:8px}
+    #turnTimer{bottom:130px}
+}
+@media(max-width:700px){
+    #center{gap:18px}
+    #drawPile,#discardPile{width:78px;height:112px}
+    #discardPile .card{width:72px;height:106px}
+    #socialPanel{width:calc(100vw - 16px);left:8px;bottom:8px;max-width:330px}
+    #chatMessages{height:75px}
+    #controls{right:8px;bottom:155px}
+    #myHand{width:96vw;height:150px}
+    .handCard{width:59px;height:86px;margin-left:-22px}
+    .playerAvatar{width:48px;height:48px;font-size:24px}
+    .playerName{font-size:14px;padding:5px 9px}
+    .cardCount{font-size:12px}
+    #turnTimer{bottom:315px}
+}
+
+
+/* V6 - visual neon, espaçamento e cartas limpas */
+html,body{background:#05070d}
+body{background:radial-gradient(circle at 50% 35%,rgba(0,91,180,.18),transparent 35%),radial-gradient(circle at 12% 20%,rgba(255,0,76,.12),transparent 28%),linear-gradient(135deg,#03050a 0%,#07101b 50%,#04050a 100%)}
+#game{background:radial-gradient(circle at 50% 48%,rgba(0,150,255,.08),transparent 34%),linear-gradient(135deg,rgba(255,0,80,.06),transparent 35%,rgba(0,120,255,.07))}
+#game::before,#game::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0}
+#game::before{background:radial-gradient(circle at 15% 15%,rgba(255,30,90,.14),transparent 25%),radial-gradient(circle at 88% 18%,rgba(0,150,255,.13),transparent 28%)}
+#game::after{background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.38))}
+#table{width:min(82vw,1220px);height:min(72vh,680px);background:radial-gradient(ellipse at center,rgba(13,48,80,.98) 0%,rgba(5,20,35,.98) 57%,rgba(3,10,18,.98) 100%);border:12px solid #1d2c3b;box-shadow:inset 0 0 70px rgba(0,0,0,.72),inset 0 0 0 2px rgba(0,170,255,.25),0 0 45px rgba(0,130,255,.16),0 22px 60px rgba(0,0,0,.7);overflow:visible;z-index:1}
+#table::before{content:"";position:absolute;inset:6%;border-radius:50%;border:2px solid rgba(0,150,255,.25);box-shadow:0 0 35px rgba(0,130,255,.12),inset 0 0 35px rgba(255,0,90,.07);pointer-events:none}
+#table::after{content:"UNO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);font-size:clamp(90px,13vw,170px);font-weight:1000;letter-spacing:8px;color:rgba(50,110,160,.10);pointer-events:none;z-index:0}
+#center{gap:110px;z-index:10}
+#drawPile,#discardPile{width:118px;height:166px;flex:none}
+#drawPile{border:4px solid #eef7ff;background:linear-gradient(145deg,#111820,#030508);box-shadow:0 0 0 2px rgba(0,150,255,.18),8px 12px 24px rgba(0,0,0,.6),0 0 22px rgba(0,110,255,.2)}
+#drawPile::after{font-size:30px;padding:7px 12px;border-color:#fff;box-shadow:0 0 15px rgba(255,0,55,.35)}
+#discardPile{width:118px;height:166px;display:block}
+#discardPile .card{width:110px;height:160px}
+.card{width:92px;height:136px;border:4px solid rgba(255,255,255,.96);border-radius:15px;box-shadow:4px 7px 13px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.12);background-image:linear-gradient(145deg,rgba(255,255,255,.16),transparent 30%,rgba(0,0,0,.12))}
+.card::before{content:"";position:absolute;inset:7px;border:2px solid rgba(255,255,255,.32);border-radius:10px;pointer-events:none}
+.cardCenter{font-size:46px;font-weight:1000;text-shadow:2px 3px 0 rgba(0,0,0,.35)}
+.cardCorner{font-size:20px;font-weight:1000;text-shadow:1px 2px 0 rgba(0,0,0,.25)}
+.wildIcon{width:58px;height:58px;border-radius:50%;border:4px solid white;box-shadow:0 3px 8px rgba(0,0,0,.35);background:conic-gradient(#e52521 0 25%,#f5d800 25% 50%,#159447 50% 75%,#1976d2 75% 100%);transform:rotate(-18deg)}
+.handCard{width:82px;height:120px;margin-left:-9px}
+.handCard:hover{transform:translateY(-42px) scale(1.09);z-index:50}
+#myHand{width:min(76vw,980px);height:190px;bottom:22px;z-index:20}
+.player{min-width:220px;z-index:20}
+#player0{top:-6px}#player1{left:-55px}#player2{right:-55px}#player3{bottom:-14px}
+.playerAvatar{width:66px;height:66px;border:3px solid #42baff;background:#07111c;box-shadow:0 0 0 2px rgba(0,150,255,.18),0 0 22px rgba(0,150,255,.2),0 8px 18px rgba(0,0,0,.55)}
+.playerName{background:rgba(3,10,18,.9);border:1px solid rgba(70,190,255,.35);border-radius:12px;padding:8px 15px;box-shadow:0 5px 16px rgba(0,0,0,.35)}
+.cardCount{background:#07121e;border:1px solid rgba(255,255,255,.15);padding:5px 11px}
+.player.myTurn .playerAvatar{border-color:#ffd500;box-shadow:0 0 0 3px rgba(255,213,0,.2),0 0 28px rgba(255,213,0,.7)}
+.opponentCards{margin-top:12px}
+.backCard{width:49px;height:72px;margin-left:-12px;border:3px solid #fff;background:linear-gradient(145deg,#161b23,#05070a);box-shadow:2px 5px 10px rgba(0,0,0,.5)}
+#info{top:18px;padding:9px 16px;background:rgba(3,9,16,.88);border:1px solid rgba(80,190,255,.28);box-shadow:0 8px 25px rgba(0,0,0,.45)}
+#turnBanner{top:12px;background:rgba(3,9,16,.95);border-color:#35b9ff;box-shadow:0 0 24px rgba(0,150,255,.35),0 8px 25px rgba(0,0,0,.45)}
+#turnBanner.myTurn{border-color:#ffd500;box-shadow:0 0 24px rgba(255,213,0,.55),0 8px 25px rgba(0,0,0,.45)}
+#controls{right:28px;bottom:28px;gap:9px}
+.controlButton{border:1px solid rgba(255,255,255,.2);box-shadow:0 7px 18px rgba(0,0,0,.4)}
+#socialPanel{left:auto;right:20px;bottom:20px;width:300px;background:rgba(3,9,16,.94);border-color:rgba(70,190,255,.28);box-shadow:0 15px 40px rgba(0,0,0,.55)}
+#turnTimer{bottom:24px;left:50%;background:rgba(3,9,16,.95);border-color:#27d8ff;box-shadow:0 0 25px rgba(0,180,255,.22)}
+.drawChoiceBox{background:linear-gradient(145deg,#101d2b,#080c13);border-color:rgba(65,190,255,.4);box-shadow:0 25px 70px rgba(0,0,0,.75),0 0 30px rgba(0,140,255,.14)}
+.drawChoiceButtons{grid-template-columns:1fr 1fr;gap:10px}
+#unoDrawnButton{grid-column:1/-1;background:#e60000;color:#fff;box-shadow:0 0 18px rgba(230,0,0,.3)}
+#playDrawnButton{background:#19b955;color:#fff}#keepDrawnButton{background:#e9eef4;color:#111}
+.flyingCard{width:76px!important;height:112px!important;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}
+@media(max-width:1000px){#table{width:88vw;height:70vh}#center{gap:60px}#drawPile,#discardPile{width:100px;height:144px}#discardPile .card{width:94px;height:138px}#myHand{width:84vw}.handCard{width:72px;height:106px;margin-left:-12px}#player1{left:-20px}#player2{right:-20px}}
+@media(max-width:700px){#table{width:96vw;height:68vh;border-width:8px}#center{gap:28px}#drawPile,#discardPile{width:82px;height:116px}#discardPile .card{width:76px;height:110px}#myHand{width:96vw;bottom:8px;height:155px}.handCard{width:59px;height:87px;margin-left:-17px}#player1{left:-8px}#player2{right:-8px}.player{min-width:140px}.playerAvatar{width:50px;height:50px}.playerName{font-size:12px;padding:5px 8px}#socialPanel{right:8px;left:auto;bottom:8px;width:260px;max-width:70vw}.drawChoiceButtons{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="menu">
+    <h1>UNO</h1>
+    <p id="menuSubtitle">Escolha a quantidade de jogadores</p>
+
+    <div id="playerCountSelection">
+        <button class="playerButton" onclick="selectPlayers(2)">2 Jogadores</button>
+        <button class="playerButton" onclick="selectPlayers(3)">3 Jogadores</button>
+        <button class="playerButton" onclick="selectPlayers(4)">4 Jogadores</button>
+    </div>
+
+    <div class="onlineBox" id="onlineLobby" style="display:none">
+        <div class="lobbyCard" id="setupCard">
+            <div class="selectedPlayersBadge" id="selectedPlayersText">2 Jogadores</div>
+            <h2 class="lobbyTitle">Preparar partida</h2>
+            <p class="lobbySubtitle">Crie uma sala para seus amigos ou entre usando um código.</p>
+
+            <label class="fieldLabel" for="playerNameInput">SEU NOME</label>
+            <input id="playerNameInput" maxlength="18" placeholder="Digite seu nome" autocomplete="off">
+            <div class="profileRow">
+                <div id="avatarPreview">👤</div>
+                <div class="avatarChooser">
+                    <label for="avatarInput">FOTO DE PERFIL (OPCIONAL)</label>
+                    <input id="avatarInput" type="file" accept="image/*" onchange="previewAvatar()">
+                </div>
+            </div>
+            <button class="createButton" onclick="createRoom()">🎮 CRIAR NOVA SALA</button>
+
+            <div class="divider"><span>OU ENTRE EM UMA SALA</span></div>
+
+            <label class="fieldLabel" for="roomCodeInput">CÓDIGO DA SALA</label>
+            <div class="joinRow">
+                <input id="roomCodeInput" maxlength="6" placeholder="EX: A7K9P2" autocomplete="off">
+                <button class="joinButton" onclick="joinRoom()">ENTRAR</button>
+            </div>
+        </div>
+
+        <div id="lobbyStatus"></div>
+
+        <div id="roomPanel" style="display:none">
+            <div class="roomHeader">
+                <h2>Sala criada</h2>
+                <div class="roomCodeBox">
+                    <span id="roomCodeLabel">------</span>
+                    <button class="copyButton" onclick="copyRoomCode()" title="Copiar código">📋</button>
+                </div>
+                <p id="hostText"></p>
+                <p id="roomCapacityText"></p>
+            </div>
+
+            <div id="lobbyPlayers"></div>
+
+            <button id="startOnlineButton" class="startButton" disabled onclick="startOnlineGame()">
+                ▶ INICIAR JOGO
+            </button>
+            <p id="waitingText" class="waitingText">Aguardando jogadores...</p>
+
+            <button class="playerButton exitButton" onclick="leaveRoom()">SAIR DA SALA</button>
+        </div>
+
+        <button class="playerButton backMenuButton" onclick="backToPlayerCount()">← VOLTAR</button>
+    </div>
+</div>
+
+<div id="game">
+    <div id="turnBanner" aria-live="polite">
+        <span id="turnBannerIcon">🎮</span>
+        <span id="turnBannerText">VEZ DE JOGAR</span>
+    </div>
+
+    <div id="animationLayer" aria-hidden="true"></div>
+
+    <div id="unoCelebration" aria-live="assertive">
+        <div class="unoBurst">
+            <div class="unoWord">UNO!</div>
+            <div id="unoPlayerName">Jogador</div>
+        </div>
+    </div>
+
+    <div id="table">
+        <div class="player" id="player0"></div>
+        <div class="player" id="player1"></div>
+        <div class="player" id="player2"></div>
+        <div class="player" id="player3"></div>
+
+        <div id="info">
+            <span id="turnInfo">Turno</span>
+            <span id="direction">↻</span>
+            <span>Cor:</span>
+            <span id="currentColor">-</span>
+            <span id="pending"></span>
+        </div>
+
+        <div id="center">
+            <div id="drawPile" class="pile" onclick="drawCard()"></div>
+            <div id="discardPile" class="pile"></div>
+        </div>
+
+        <div id="penaltyEffect">
+            <strong id="penaltyAmount">+0</strong>
+            <span id="penaltyTarget"></span>
+        </div>
+
+        <div id="myHand"></div>
+    </div>
+
+    <div id="controls">
+        <button class="controlButton" id="unoButton" onclick="callUNO()">UNO!</button>
+        <button class="controlButton" id="challengeButton" onclick="challengeUNO()">PEGAR UNO!</button>
+        <button class="controlButton" id="changeButton" style="display:none">Trocar jogador</button>
+        <button class="controlButton" onclick="leaveGame()">Sair</button>
+    </div>
+</div>
+
+<div id="turnTimer" aria-live="polite">
+    <span id="turnTimerName">Seu tempo está acabando</span>
+    <strong id="turnTimerNumber">11</strong>
+</div>
+
+<div id="socialPanel">
+    <div id="chatMessages"></div>
+    <div id="chatForm">
+        <input id="chatInput" maxlength="160" placeholder="Digite uma mensagem..." autocomplete="off">
+        <button id="chatSend" onclick="sendChat()">Enviar</button>
+    </div>
+    <div id="emotes">
+        <button class="emoteButton" onclick="sendEmote('😂')">😂</button>
+        <button class="emoteButton" onclick="sendEmote('🤣')">🤣</button>
+        <button class="emoteButton" onclick="sendEmote('😎')">😎</button>
+        <button class="emoteButton" onclick="sendEmote('😱')">😱</button>
+        <button class="emoteButton" onclick="sendEmote('🤡')">🤡</button>
+        <button class="emoteButton" onclick="sendEmote('🔥')">🔥</button>
+        <button class="emoteButton" onclick="sendEmote('👏')">👏</button>
+        <button class="emoteButton" onclick="sendEmote('💀')">💀</button>
+        <button class="emoteButton" onclick="sendEmote('😈')">😈</button>
+        <button class="emoteButton" onclick="sendEmote('😭')">😭</button>
+        <button class="emoteButton" onclick="sendEmote('🃏')">🃏</button>
+    </div>
+</div>
+
+<div id="drawChoiceModal">
+    <div class="drawChoiceBox">
+        <h2>🃏 Você comprou uma carta jogável!</h2>
+        <p>Você pode colocar a carta na pilha agora ou guardar a carta e passar a vez.</p>
+        <div class="drawChoiceButtons">
+            <button id="unoDrawnButton" onclick="declareUnoAndPlayDrawn()">🔴 UNO + JOGAR</button>
+            <button id="playDrawnButton" onclick="playDrawnCard()">▶ JOGAR CARTA</button>
+            <button id="keepDrawnButton" onclick="keepDrawnAndPass()">↪ MANTER CARTA E PASSAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="colorModal">
+    <div id="colorBox">
+        <h2>Escolha a próxima cor</h2>
+        <button class="colorButton red" onclick="chooseColor('red')">VERMELHO</button>
+        <button class="colorButton yellow" onclick="chooseColor('yellow')">AMARELO</button>
+        <button class="colorButton green" onclick="chooseColor('green')">VERDE</button>
+        <button class="colorButton blue" onclick="chooseColor('blue')">AZUL</button>
+    </div>
+</div>
+
+<div id="winScreen">
+    <h1 id="winnerText">VITÓRIA!</h1>
+    <p id="rematchCount">0/0 jogadores aceitaram continuar</p>
+    <button id="rematchButton" onclick="requestRematch()">🔄 CONTINUAR JOGANDO</button>
+    <button id="leaveAfterWin" onclick="leaveGame()">SAIR DA PARTIDA</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/client.js"></script>
+<script>
+document.getElementById("chatInput")?.addEventListener("keydown", e => { if(e.key === "Enter") sendChat(); });
+</script>
+</body>
+</html>
